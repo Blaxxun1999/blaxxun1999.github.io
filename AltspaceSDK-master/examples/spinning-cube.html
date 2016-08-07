@@ -36,7 +36,7 @@ function createCube() {
 	
 	var texture = new THREE.TextureLoader().load(url);
 	//var geometry = new THREE.BoxGeometry(1, 1, 1);
-	var geometry = new THREE.SphereGeometry( 1, widthSegments, heightSegments );
+	var geometry = new THREE.SphereGeometry( 2, widthSegments, heightSegments );
 	//var material = new THREE.MeshBasicMaterial({color:'#ffff00', map: texture});
 	//var material = new THREE.MeshBasicMaterial({color: defColor, wireframe: true});
 	var material = new THREE.MeshBasicMaterial({color: defColor, map: texture});
