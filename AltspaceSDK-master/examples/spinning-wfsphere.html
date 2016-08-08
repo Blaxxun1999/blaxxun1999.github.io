@@ -41,7 +41,9 @@ function createWfSphere() {
 	
 	// Create the Mesh
 	//var material = new THREE.MeshBasicMaterial({color:'#ffff00', map: texture});
-	var material = new THREE.MeshBasicMaterial({color: defColor, wireframe: true});
+	//var material = new THREE.MeshBasicMaterial({color: defColor, wireframe: true});
+	var material = new THREE.MeshLambertMaterial({color: defColor, wireframe: true});
+
 	//var material = new THREE.MeshBasicMaterial({color: defColor, map: texture});
 	var wfSphere = new THREE.Mesh(geometry, material);
 
@@ -57,7 +59,9 @@ function createWfSphere() {
 
 		ChangeColor()
 	);
-
+	sim.scene.background = 0x000000
+    
+    //sim.scene.s
 	sim.scene.add(wfSphere);
 	return wfSphere;
 }
