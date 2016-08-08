@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang=en>
+<head>
+<meta charset=utf-8>
+<title>Spinning Wireframe Sphere</title>
+<script src="https://cdn.rawgit.com/mrdoob/three.js/r74/build/three.min.js"></script>
+<script src="../dist/altspace.min.js"></script>
+</head>
+<body>
+<script>
+
+var segments = 24
+var sim = altspace.utilities.Simulation();
+sim.camera.position.z = 7;
+var config = { authorId: 'AltspaceSDK', appId: 'SpinningWfSphere' };
+var sceneSync;
+altspace.utilities.sync.connect(config).then(function(connection) {
+	sceneSync = altspace.utilities.behaviors.SceneSync(connection.instance, {
+		instantiators: {'WfSphere': createWfSphere },
+		ready: ready
+	});
+	sim.scene.addBehavior(sceneSync);
+});
+
+function createWfSphere() {
+	var widthSegments = segments;
+	var heightSegments = segments;
+	var defColor = '#2194ce'; //'#000000'; //'#ffffff';	//'#2194ce';
+	
+	// Create the Texture
+	//var url = 'models/moon/altspace-logo.jpg';			// From spinning-cube
+	//var url = 'models/moon/Moon-heightmap.jpg';			// Moon heightmap - use later
+	var url = 'models/moon/Moon-4096x2048.jpg';				// Medium size texture
+	//var url = 'models/moon/Moon-8192x4096.jpg';			// Large size texture
+	//var url = 'models/moon/mars_1k_color.jpg';			// Small size Mars texture
+	//var texture = new THREE.TextureLoader().load(url);	// Create the actual texture
+	
+	// Create the Geometry
+	//var geometry = new THREE.BoxGeometry(1, 1, 1);		// From spinning-cube
+	var geometry = new THREE.SphereGeometry( 1, widthSegments, heightSegments );
+	
+	// Create the Mesh
+	//var material = new THREE.MeshBasicMaterial({color:'#ffff00', map: texture});
+	var material = new THREE.MeshBasicMaterial({color: defColor, wireframe: true});
+	//var material = new THREE.MeshBasicMaterial({color: defColor, map: texture});
+	var wfSphere = new THREE.Mesh(geometry, material);
+
+	wfSphere.addBehaviors(
+		altspace.utilities.behaviors.Object3DSync(),
+		altspace.utilities.behaviors.Spin({speed: 0.000075}),
+/*
+		altspace.utilities.behaviors.Layout({
+						my: {y: 'min'}, 
+						at: {y: 'min+0.05m'}}),
+*/		
+		//altspace.utilities.behaviors.Bob({shouldRotate: true, shouldMove: false}),
+
+		ChangeColor()
+	);
+
+	sim.scene.add(wfSphere);
+	return wfSphere;
+}
+
+function ready(firstInstance) {
+	if (firstInstance) {
+		sceneSync.instantiate('WfSphere');
+	}
+}
+
+function ChangeColor() {//define a custom behavior
+
+	var object3d;
+	var lastColor;
+	var colorRef;
+
+	function awake(o) {
+		object3d = o;
+		var sync = object3d.getBehaviorByType('Object3DSync');//TODO: better way of doing this
+		colorRef = sync.dataRef.child('color');
+
+		colorRef.on('value', function (snapshot) {
+			var value = snapshot.val();
+			if (!value) return; //we are first to create the cube, no color set yet
+			object3d.material.color = new THREE.Color(value);
+			object3d.material.needsUpdate = true;//currently required in Altspace
+		});
+/*
+		object3d.addEventListener('cursordown', function() {
+			var color = Please.make_color()[0];//random color
+			colorRef.set(color);
+		});
+*/
+		if (altspace && altspace.inClient) {
+			altspace.getEnclosure().then(function(e) {
+				// scale cube so it's 1 meter in Altspace
+				object3d.scale.multiplyScalar(e.pixelsPerMeter);
+			});
+		}
+
+	}
+
+	function update(deltaTime) {
+		/* no updating needed, color changes in Firebase 'value' callback above */
+	}
+
+	return { awake: awake, update: update };
+
+};
+
+</script>
+</body>
+</html>
